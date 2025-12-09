@@ -16,10 +16,8 @@ start_time_right = time.ticks_ms()
 interval = 300 #ms - burde være hvor hurtigt vores LED blinker
 blink_tid = 10000 #hvor lang tid den skal blinke (10sec)
 
-højre_LED_state = 0 # dette er når vores LED == 0
-venstre_LED_state = 0 # dette er når vores LED ==0 dvs. burde ikke blinke
 
-stop_blink = False
+# stop_blink = False
 
 def blink_left():
     global stop_blink
@@ -27,18 +25,16 @@ def blink_left():
     
     start_time_left = time.ticks_ms()
     while time.ticks_ms() - start_time_left <= blink_tid:
-        if stop_blink:
+        if højre_knap.value() ==0 and stop_blink:
             break
         venstre_LED.value(not venstre_LED.value())
         time.sleep_ms(interval)
     venstre_LED.value(0) # LED slukket
         
 def blink_right():
-    global stop_blink
-    stop_blink = False
     start_time_right = time.ticks_ms()
     while time.ticks_ms() - start_time_right <= blink_tid:
-        if stop_blink: #hvis vi afbryder knappen
+        if venstre_knap.value() ==0 and stop_blink: #hvis vi afbryder knappen
             break
         højre_LED.value(not højre_LED.value())
         time.sleep_ms(interval)
@@ -66,4 +62,3 @@ while True:
            
     if højre_knap.value() ==0:
         blink_right()
-
