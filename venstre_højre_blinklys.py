@@ -13,41 +13,57 @@ start_time_left = time.ticks_ms()
 #vi har defineret en start_tid for højre knap
 start_time_right = time.ticks_ms()
 
-interval = 500 #ms - burde være hvor hurtigt vores LED blinker
+interval = 300 #ms - burde være hvor hurtigt vores LED blinker
 blink_tid = 10000 #hvor lang tid den skal blinke (10sec)
 
 højre_LED_state = 0 # dette er når vores LED == 0
 venstre_LED_state = 0 # dette er når vores LED ==0 dvs. burde ikke blinke
 
+stop_blink = False
 
-while True:    # - venstre_knap
+def blink_left():
+    global stop_blink
+    stop_blink = False
     
+    start_time_left = time.ticks_ms()
+    while time.ticks_ms() - start_time_left <= blink_tid:
+        if stop_blink:
+            break
+        venstre_LED.value(not venstre_LED.value())
+        time.sleep_ms(interval)
+    venstre_LED.value(0) # LED slukket
+        
+def blink_right():
+    global stop_blink
+    stop_blink = False
+    start_time_right = time.ticks_ms()
+    while time.ticks_ms() - start_time_right <= blink_tid:
+        if stop_blink: #hvis vi afbryder knappen
+            break
+        højre_LED.value(not højre_LED.value())
+        time.sleep_ms(interval)
+    højre_LED.value(0)
+    
+
+def venstre_stop_irq(pin):
+    global stop_blink
+    stop_blink = True
+    
+def højre_stop_irq(pin):
+    global stop_blink
+    stop_blink = True
+
+# interrupt for venstre_knap
+
+# interrrupt():
+venstre_knap.irq(trigger = Pin.IRQ_FALLING, handler = venstre_stop_irq) 
+# #interrupt for højre_knap
+højre_knap.irq(trigger = Pin.IRQ_FALLING, handler = højre_stop_irq)
+
+while True:
     if venstre_knap.value() == 0:
-        print("venstre_knap_value: ", venstre_knap.value())
-        if time.ticks_ms() - start_time_left >= interval:
-            start_time_left = time.ticks_ms()
-            if (venstre_LED_state == 1 and venstre_knap ==0):
-                venstre_LED_state = 0
-                   
-            else:
-                venstre_LED_state = 1
-            venstre_LED.value(venstre_LED_state)
-            højre_LED.off()
+        blink_left()
+           
+    if højre_knap.value() ==0:
+        blink_right()
 
-    if højre_knap.value() == 0: #højre_knap
-        print("højre_knap_value: ", højre_knap.value())
-        if time.ticks_ms() - start_time_right >= interval:
-            start_time_right = time.ticks_ms()
-            if (højre_LED_state == 1 and højre_knap ==0):
-                højre_LED_state = 0
-            else:
-                højre_LED_state = 1
-            højre_LED.value(højre_LED_state)
-            venstre_LED.off()
-            
-
-
-#interrupt for venstre_knap
-venstre_knap.irq(trigger=machine.Pin.IRQ_FALLING, handler = handle_interrupt) 
-#interrupt for højre_knap
-højre_knap.irq(triggermachine.Pin.IRQ_FALLING, handler = handle_interrupt)
